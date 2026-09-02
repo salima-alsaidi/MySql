@@ -69,4 +69,28 @@ public class StudentService {
         }
         return new Student();
     }
+
+    public Student updateStudent(Long id, String name, String major){
+        Student studentToUpdate=studentRepository.getById(id);
+        if(studentToUpdate==null){
+            return new Student();
+        }
+        studentToUpdate.setId(id);
+        studentToUpdate.setName(name);
+        studentToUpdate.setMajor(major);
+        studentToUpdate=studentRepository.save(studentToUpdate);
+        return studentToUpdate;
+    }
+
+    public Boolean deletById(Long id) {
+        Student studentToUpdate = studentRepository.getById(id);
+        if (studentToUpdate == null) {
+            return false;
+        }
+
+        studentToUpdate.setIsActive(false);
+        studentToUpdate.setUpdatedDate(new Date());
+        studentRepository.save(studentToUpdate);
+        return true;
+    }
 }

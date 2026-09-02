@@ -46,4 +46,15 @@ public class StudentController {
         return Studentdto.convertTDTO(studentService.getById(id));
     }
 
+    @PostMapping("update")
+    public Studentdto updateStudent(@RequestParam Long id, @RequestParam String name, @RequestParam String major){
+        return Studentdto.convertTDTO(studentService.updateStudent(id, name, major));
+    }
+
+    @DeleteMapping("deletById")
+
+    public Boolean deletById(@RequestParam Long id){
+        return studentService.deletById(id);
+    }
+
 }
