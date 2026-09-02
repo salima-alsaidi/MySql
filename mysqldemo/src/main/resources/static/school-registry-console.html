@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>School Registry Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy: #1B2A44;
+    --navy-deep: #10192B;
+    --parchment: #EDE7D8;
+    --parchment-dim: #E1DAC7;
+    --ink: #1A1A1A;
+    --gold: #A98249;
+    --line: rgba(26,26,26,0.16);
+    --ok: #3F6B4F;
+    --err: #9B3A3A;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--parchment);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+  }
+  .masthead{
+    background: var(--navy-deep);
+    color: var(--parchment);
+    padding: 28px 40px 22px;
+    border-bottom: 3px solid var(--gold);
+  }
+  .masthead h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 30px;
+    margin: 0 0 4px;
+    letter-spacing: 0.2px;
+  }
+  .masthead p{
+    margin: 0;
+    font-size: 12.5px;
+    color: #C9C2AC;
+    max-width: 62ch;
+    line-height: 1.5;
+  }
+  .layout{
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    min-height: calc(100vh - 96px);
+  }
+  @media (max-width: 720px){
+    .layout{ grid-template-columns: 1fr; }
+    nav.registry-nav{ border-right: none; border-bottom: 1px solid var(--line); }
+  }
+  nav.registry-nav{
+    background: var(--parchment-dim);
+    border-right: 1px solid var(--line);
+    padding: 18px 0;
+  }
+  nav.registry-nav button{
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    padding: 12px 20px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  nav.registry-nav button:hover{ background: rgba(169,130,73,0.12); }
+  nav.registry-nav button.active{
+    border-left: 3px solid var(--gold);
+    background: rgba(169,130,73,0.16);
+    font-weight: 600;
+  }
+  nav.registry-nav .tag{
+    display:block;
+    font-size: 10px;
+    color: var(--gold);
+    margin-top: 2px;
+  }
+  main{ padding: 32px 40px 60px; }
+  .panel{ display: none; max-width: 640px; }
+  .panel.active{ display: block; }
+  .panel h2{
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 21px;
+    margin: 0 0 4px;
+  }
+  .panel .endpoint{
+    font-size: 12px;
+    color: var(--navy);
+    margin: 0 0 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .field{ margin-bottom: 14px; }
+  .field label{
+    display:block;
+    font-size: 11.5px;
+    color: #55503F;
+    margin-bottom: 5px;
+  }
+  .field input{
+    width: 100%;
+    padding: 9px 10px;
+    font-family: inherit;
+    font-size: 13.5px;
+    background: #FBF9F3;
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+  .field input:focus{ outline: 2px solid var(--gold); outline-offset: 0; }
+  .row{ display:flex; gap: 12px; }
+  .row .field{ flex: 1; }
+  button.submit{
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 22px;
+    background: var(--navy);
+    color: var(--parchment);
+    border: none;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  button.submit:hover{ background: var(--navy-deep); }
+  button.submit.danger{ background: var(--err); }
+  button.submit.danger:hover{ background: #7A2C2C; }
+  .result{
+    margin-top: 20px;
+    border: 1px solid var(--line);
+    background: #FBF9F3;
+  }
+  .result .result-head{
+    padding: 8px 12px;
+    font-size: 11px;
+    border-bottom: 1px solid var(--line);
+    display:flex;
+    justify-content: space-between;
+  }
+  .result .result-head .status-ok{ color: var(--ok); }
+  .result .result-head .status-err{ color: var(--err); }
+  .result pre{
+    margin: 0;
+    padding: 14px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 320px;
+    overflow: auto;
+  }
+  table.ledger{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-top: 16px;
+  }
+  table.ledger th{
+    text-align: left;
+    font-size: 10.5px;
+    color: #55503F;
+    font-weight: 600;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--ink);
+  }
+  table.ledger td{
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.ledger tr:hover td{ background: rgba(169,130,73,0.08); }
+  .pill{
+    font-size: 10px;
+    padding: 2px 7px;
+    border: 1px solid currentColor;
+  }
+  .pill.active{ color: var(--ok); }
+  .pill.inactive{ color: var(--err); }
+  .empty-state{
+    font-size: 12.5px;
+    color: #6B664F;
+    padding: 16px;
+    border: 1px dashed var(--line);
+    margin-top: 16px;
+  }
+  .hint{
+    font-size: 11px;
+    color: #6B664F;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <h1>School Registry Console</h1>
+  <p>A working desk for the school directory service at localhost:8080. Add entries, review the roll, and correct or retire a record.</p>
+</div>
+
+<div class="layout">
+  <nav class="registry-nav">
+    <button class="nav-btn active" data-panel="add">Add school<span class="tag">POST /school/add</span></button>
+    <button class="nav-btn" data-panel="all">Full roll<span class="tag">GET /school/getAll</span></button>
+    <button class="nav-btn" data-panel="find">Look up by ID<span class="tag">GET /school/getById</span></button>
+    <button class="nav-btn" data-panel="update">Amend record<span class="tag">PUT /school/update</span></button>
+    <button class="nav-btn" data-panel="delete">Retire record<span class="tag">DELETE /school/deleteById</span></button>
+  </nav>
+
+  <main>
+
+    <!-- ADD -->
+    <section class="panel active" id="panel-add">
+      <h2>Add a school</h2>
+      <p class="endpoint">POST /school/add?schoolName=&location=</p>
+      <div class="field">
+        <label for="add-name">School name</label>
+        <input id="add-name" type="text" placeholder="e.g. JBZ">
+      </div>
+      <div class="field">
+        <label for="add-location">Location</label>
+        <input id="add-location" type="text" placeholder="e.g. Muscat">
+      </div>
+      <button class="submit" onclick="addSchool()">Add school</button>
+      <div class="result" id="result-add" style="display:none;"></div>
+    </section>
+
+    <!-- ALL -->
+    <section class="panel" id="panel-all">
+      <h2>Full roll</h2>
+      <p class="endpoint">GET /school/getAll</p>
+      <button class="submit" onclick="getAllSchools()">Refresh roll</button>
+      <div id="all-output"></div>
+    </section>
+
+    <!-- FIND -->
+    <section class="panel" id="panel-find">
+      <h2>Look up by ID</h2>
+      <p class="endpoint">GET /school/getById?id=</p>
+      <div class="field">
+        <label for="find-id">School ID</label>
+        <input id="find-id" type="number" placeholder="e.g. 10">
+      </div>
+      <button class="submit" onclick="findSchool()">Look up</button>
+      <div class="result" id="result-find" style="display:none;"></div>
+    </section>
+
+    <!-- UPDATE -->
+    <section class="panel" id="panel-update">
+      <h2>Amend a record</h2>
+      <p class="endpoint">PUT /school/update?id=&name=&location=</p>
+      <div class="field">
+        <label for="update-id">School ID</label>
+        <input id="update-id" type="number" placeholder="e.g. 2">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="update-name">New name</label>
+          <input id="update-name" type="text" placeholder="e.g. The Sultan School">
+        </div>
+        <div class="field">
+          <label for="update-location">New location</label>
+          <input id="update-location" type="text" placeholder="e.g. Muscat">
+        </div>
+      </div>
+      <button class="submit" onclick="updateSchool()">Save amendment</button>
+      <div class="result" id="result-update" style="display:none;"></div>
+    </section>
+
+    <!-- DELETE -->
+    <section class="panel" id="panel-delete">
+      <h2>Retire a record</h2>
+      <p class="endpoint">DELETE /school/deleteById?id=</p>
+      <div class="field">
+        <label for="delete-id">School ID</label>
+        <input id="delete-id" type="number" placeholder="e.g. 2">
+      </div>
+      <button class="submit danger" onclick="deleteSchool()">Retire school</button>
+      <p class="hint">This calls the delete endpoint directly — there is no undo from here.</p>
+      <div class="result" id="result-delete" style="display:none;"></div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const BASE = 'http://localhost:8080';
+
+// --- nav ---
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+  });
+});
+
+function showResult(elId, ok, statusText, bodyText){
+  const el = document.getElementById(elId);
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="result-head">
+      <span>Response</span>
+      <span class="${ok ? 'status-ok' : 'status-err'}">${statusText}</span>
+    </div>
+    <pre>${bodyText}</pre>
+  `;
+}
+
+function fmt(data){
+  try { return JSON.stringify(JSON.parse(data), null, 2); }
+  catch(e){ return data; }
+}
+
+async function callApi(url, options, resultId){
+  try {
+    const res = await fetch(url, options);
+    const text = await res.text();
+    showResult(resultId, res.ok, `${res.status} ${res.statusText}`, fmt(text));
+    return { ok: res.ok, text };
+  } catch (err) {
+    showResult(resultId, false, 'Request failed', String(err) + '\n\nCheck that the server at ' + BASE + ' is running and reachable from this page.');
+    return { ok: false, text: null };
+  }
+}
+
+// --- ADD ---
+async function addSchool(){
+  const name = document.getElementById('add-name').value.trim();
+  const location = document.getElementById('add-location').value.trim();
+  if(!name || !location){
+    showResult('result-add', false, 'Missing input', 'Enter both a school name and a location before submitting.');
+    return;
+  }
+  const url = `${BASE}/school/add?schoolName=${encodeURIComponent(name)}&location=${encodeURIComponent(location)}`;
+  await callApi(url, { method: 'POST' }, 'result-add');
+}
+
+// --- ALL ---
+async function getAllSchools(){
+  const out = document.getElementById('all-output');
+  out.innerHTML = '<div class="empty-state">Fetching the roll…</div>';
+  try {
+    const res = await fetch(`${BASE}/school/getAll`);
+    const data = await res.json();
+    if(!Array.isArray(data) || data.length === 0){
+      out.innerHTML = '<div class="empty-state">No schools on record yet. Add one from the first tab.</div>';
+      return;
+    }
+    const rows = data.map(s => `
+      <tr>
+        <td>${s.id}</td>
+        <td>${escapeHtml(s.name)}</td>
+        <td>${escapeHtml(s.location)}</td>
+        <td><span class="pill ${s.isActive ? 'active' : 'inactive'}">${s.isActive ? 'active' : 'inactive'}</span></td>
+        <td>${s.createdDate ? new Date(s.createdDate).toLocaleString() : '—'}</td>
+        <td>${s.updatedDate ? new Date(s.updatedDate).toLocaleString() : '—'}</td>
+      </tr>`).join('');
+    out.innerHTML = `
+      <table class="ledger">
+        <thead>
+          <tr><th>ID</th><th>Name</th><th>Location</th><th>Status</th><th>Created</th><th>Updated</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch (err) {
+    out.innerHTML = `<div class="empty-state">Could not reach ${BASE}. ${String(err)}</div>`;
+  }
+}
+
+function escapeHtml(str){
+  if(str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// --- FIND ---
+async function findSchool(){
+  const id = document.getElementById('find-id').value.trim();
+  if(!id){
+    showResult('result-find', false, 'Missing input', 'Enter a school ID to look up.');
+    return;
+  }
+  await callApi(`${BASE}/school/getById?id=${encodeURIComponent(id)}`, { method: 'GET' }, 'result-find');
+}
+
+// --- UPDATE ---
+async function updateSchool(){
+  const id = document.getElementById('update-id').value.trim();
+  const name = document.getElementById('update-name').value.trim();
+  const location = document.getElementById('update-location').value.trim();
+  if(!id || !name || !location){
+    showResult('result-update', false, 'Missing input', 'Enter the ID, new name, and new location before saving.');
+    return;
+  }
+  const url = `${BASE}/school/update?id=${encodeURIComponent(id)}&name=${encodeURIComponent(name)}&location=${encodeURIComponent(location)}`;
+  await callApi(url, { method: 'PUT' }, 'result-update');
+}
+
+// --- DELETE ---
+async function deleteSchool(){
+  const id = document.getElementById('delete-id').value.trim();
+  if(!id){
+    showResult('result-delete', false, 'Missing input', 'Enter a school ID to retire.');
+    return;
+  }
+  const url = `${BASE}/school/deleteById?id=${encodeURIComponent(id)}`;
+  await callApi(url, { method: 'DELETE' }, 'result-delete');
+}
+</script>
+
+</body>
+</html>
