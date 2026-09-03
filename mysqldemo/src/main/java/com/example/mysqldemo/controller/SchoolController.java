@@ -1,8 +1,10 @@
 package com.example.mysqldemo.controller;
 
 import com.example.mysqldemo.DataTransferObject.Schooldto;
+import com.example.mysqldemo.DataTransferObject.Studentdto;
 import com.example.mysqldemo.Services.SchoolService;
 import com.example.mysqldemo.entities.School;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +22,8 @@ public class SchoolController {
     }
 
     @PostMapping("add")
-    public Long addSchool(@RequestParam String schoolName, @RequestParam String location) {
-        return schoolService.createSchool(schoolName, location);
+    public Long addSchool(@Valid @RequestBody Schooldto dto) {
+        return schoolService.createSchool(dto.getSchoolName(), dto.getSchoolLocation());
 
     }
 
@@ -40,13 +42,15 @@ public class SchoolController {
 
 
     @PutMapping("update")
-    public Schooldto updateSchool(@RequestParam Long id, @RequestParam String name, @RequestParam String location) {
-        return Schooldto.convrToDTO(schoolService.updateSchool(id, name, location));
+    public Schooldto updateSchool(@Valid  @RequestBody Schooldto dto) {
+        return Schooldto.convrToDTO(schoolService.updateSchool(dto.getSchoolId(), dto.getSchoolLocation(),dto.getSchoolName()));
     }
     @DeleteMapping("deleteById")
     public Boolean deleteSchool(@RequestParam Long id){
         return schoolService.deleteById(id);
     }
+
+
 
 
 
