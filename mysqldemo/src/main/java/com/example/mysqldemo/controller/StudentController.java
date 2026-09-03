@@ -5,6 +5,7 @@ import com.example.mysqldemo.DataTransferObject.Studentdto;
 import com.example.mysqldemo.Repositories.StudentRepository;
 import com.example.mysqldemo.Services.StudentService;
 import com.example.mysqldemo.entities.Student;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,15 +23,9 @@ public class StudentController {
     }
 
     @PostMapping("add")
-    public Long addStudent(
-            @RequestParam String name,
-            @RequestParam String major,
-            @RequestParam String gender,
-            @RequestParam String phoneNumber,
-            @RequestParam String parentName,
-            @RequestParam Long schoolId
-    ){
-        return studentService.addStudent(name, major, gender, phoneNumber, parentName, schoolId);
+    public Long addStudent(@Valid @RequestBody Studentdto dto)
+    {
+        return studentService.addStudent( dto.getStudentName(), dto.getMajor(),dto.getGender(), dto.getPhoneNumber(),dto.getParentName(), dto.getSchoolId());
     }
 
     @GetMapping("getAll")
@@ -46,12 +41,17 @@ public class StudentController {
         return Studentdto.convertTDTO(studentService.getById(id));
     }
 
-    @PostMapping("update")
-    public Studentdto updateStudent(@RequestParam Long id, @RequestParam String name, @RequestParam String major){
-        return Studentdto.convertTDTO(studentService.updateStudent(id, name, major));
+    @PutMapping("update")
+    public Studentdto updateStudent(@Valid @RequestBody Studentdto dto){
+        return Studentdto.convertTDTO(studentService.updateStudent(dto.getStudentId(),
+                dto.getStudentName(),
+                dto.getGender(),
+                dto.getPhoneNumber(),
+                dto.getParentName(),
+                dto.getMajor()));
     }
 
-    @DeleteMapping("deletById")
+    @PutMapping("deletById")
 
     public Boolean deletById(@RequestParam Long id){
         return studentService.deletById(id);

@@ -1,15 +1,11 @@
 package com.example.mysqldemo.Services;
 
-import com.example.mysqldemo.DataTransferObject.Studentdto;
 import com.example.mysqldemo.Repositories.SchoolRepository;
 import com.example.mysqldemo.Repositories.StudentRepository;
-import com.example.mysqldemo.Services.SchoolService;
 import com.example.mysqldemo.entities.School;
 import com.example.mysqldemo.entities.Student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Date;
 import java.util.List;
@@ -44,7 +40,7 @@ public class StudentService {
         student.setMajor(major);
         student.setGender(gender);
         student.setPhoneNumber(phoneNumber);
-        student.setPhoneNumber(parentName);
+        student.setParentName(parentName);
 
         student.setIsActive(true);
         student.setCreatedDate(new Date());
@@ -59,7 +55,7 @@ public class StudentService {
     }
 
     public List<Student> getAllStudents() {
-        return studentRepository.findAll();
+        return studentRepository.getAllStudent();
     }
 
     public Student getById(Long id) {
@@ -70,14 +66,17 @@ public class StudentService {
         return new Student();
     }
 
-    public Student updateStudent(Long id, String name, String major){
+    public Student updateStudent(Long id, String name, String gender, String major, String phoneNumber, String parentName){
         Student studentToUpdate=studentRepository.getById(id);
         if(studentToUpdate==null){
             return new Student();
         }
         studentToUpdate.setId(id);
         studentToUpdate.setName(name);
+        studentToUpdate.setGender(gender);
         studentToUpdate.setMajor(major);
+        studentToUpdate.setPhoneNumber(phoneNumber);
+        studentToUpdate.setParentName(parentName);
         studentToUpdate=studentRepository.save(studentToUpdate);
         return studentToUpdate;
     }
